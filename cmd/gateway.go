@@ -1,6 +1,3 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -8,14 +5,39 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/spf13/cobra"
 )
 
-func globalHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.Host)
+var routers = map[string]*chi.Mux{}
+var cfgFile string
 
+func globalHandler(w http.ResponseWriter, r *http.Request) {
+	uriParts := strings.Split(strings.TrimPrefix(r.URL.Path, "/"), "/")
+
+	prefix := uriParts[0]
+	uriParts = uriParts[1:]
+	newPath := "/" + strings.Join(uriParts, "/")
+
+	fmt.Println(prefix, newPath)
+
+	r.URL.Path = newPath // Reset path to remove prefix
+
+	router, ok := routers[prefix]
+
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "No router found for %s", prefix)
+		return
+	}
+
+	router.ServeHTTP(w, r)
+}
+
+func makeRouters() {
+	fmt.Println(cfgFile)
 	router := chi.NewRouter()
 
 	proxy := makeProxy("http://example.com")
@@ -25,9 +47,7 @@ func globalHandler(w http.ResponseWriter, r *http.Request) {
 	// Fallback to proxy
 	router.NotFound(proxy.ServeHTTP)
 
-	router.ServeHTTP(w, r)
-
-	// proxy.ServeHTTP(w, r)
+	routers["example"] = router
 }
 
 func makeProxy(target string) *httputil.ReverseProxy {
@@ -63,6 +83,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		makeRouters()
 		globalHandler := http.HandlerFunc(globalHandler)
 
 		err := http.ListenAndServe("127.0.0.1:8000", globalHandler)
@@ -75,13 +96,5 @@ to quickly create a Cobra application.`,
 func init() {
 	rootCmd.AddCommand(gatewayCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// gatewayCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// gatewayCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	gatewayCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "Config File")
 }

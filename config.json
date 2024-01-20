@@ -1,5 +1,7 @@
-{
-    "test.sites.belkonar.com:8000": {
+[
+    {
+        "prefix": "example",
+        "target": "https://example.com",
         "endpoints": [
             {
                 "path": "/test/{id}",
@@ -14,4 +16,4 @@
             }
         ]
     }
-}
+]
