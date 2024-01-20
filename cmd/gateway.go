@@ -1,12 +1,15 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"strings"
 
+	"github.com/Belkonar/anubis/types"
 	"github.com/go-chi/chi"
 	"github.com/spf13/cobra"
 )
@@ -38,16 +41,37 @@ func globalHandler(w http.ResponseWriter, r *http.Request) {
 
 func makeRouters() {
 	fmt.Println(cfgFile)
+
+	if cfgFile == "" {
+		panic("No config file specified")
+	}
+
+	configData, err := os.ReadFile(cfgFile)
+
+	if err != nil {
+		panic(err)
+	}
+
+	config := []types.TargetConfig{}
+
+	json.Unmarshal(configData, &config)
+
+	for _, target := range config {
+		// Fallback to proxy
+		setupRouter(target)
+	}
+}
+
+func setupRouter(target types.TargetConfig) {
 	router := chi.NewRouter()
 
-	proxy := makeProxy("http://127.0.0.1:8010")
+	proxy := makeProxy(target.Target)
 
-	router.Get("/", proxy.ServeHTTP)
+	// router.Get("/", proxy.ServeHTTP)
 
-	// Fallback to proxy
-	router.NotFound(proxy.ServeHTTP)
+	router.NotFound(proxy.ServeHTTP) // Catch all router
 
-	routers["example"] = router
+	routers[target.Prefix] = router
 }
 
 func makeProxy(target string) *httputil.ReverseProxy {
