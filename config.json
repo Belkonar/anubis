@@ -1,7 +1,7 @@
 [
     {
         "prefix": "example",
-        "target": "https://example.com",
+        "target": "http://127.0.0.1:8010",
         "endpoints": [
             {
                 "path": "/test/{id}",

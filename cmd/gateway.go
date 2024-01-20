@@ -40,7 +40,7 @@ func makeRouters() {
 	fmt.Println(cfgFile)
 	router := chi.NewRouter()
 
-	proxy := makeProxy("http://example.com")
+	proxy := makeProxy("http://127.0.0.1:8010")
 
 	router.Get("/", proxy.ServeHTTP)
 

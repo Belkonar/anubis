@@ -1,6 +1,6 @@
-# Hammer
+# Anubis
 
-Hammer is an API gateway with a focus on transparent authorization.
+Anubis is an API gateway with a focus on transparent authorization.
 
 It uses prefix paths to make it not a complete pain to host, though I may update
 it to support Host header matching later.
