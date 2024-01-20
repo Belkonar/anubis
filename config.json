@@ -1,0 +1,17 @@
+{
+    "test.sites.belkonar.com:8000": {
+        "endpoints": [
+            {
+                "path": "/test/{id}",
+                "method": "GET",
+                "fga": [
+                    {
+                        "relation": "read",
+                        "objectType": "resource",
+                        "objectKey": "id"
+                    }
+                ]
+            }
+        ]
+    }
+}
