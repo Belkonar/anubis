@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/spf13/cobra"
 )
 
 func echoHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-	fmt.Fprintf(w, "{ \"method\": \"%s\", \"path\": \"%s\" }", r.Method, r.URL.Path)
+	fmt.Fprintf(w, "Echoing %s", r.URL.Path)
 }
 
 // echoerCmd represents the echoer command
@@ -26,9 +27,11 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		globalHandler := http.HandlerFunc(echoHandler)
+		router := chi.NewRouter()
+		router.Use(middleware.Logger)
+		router.NotFound(echoHandler)
 
-		err := http.ListenAndServe("127.0.0.1:8010", globalHandler)
+		err := http.ListenAndServe("127.0.0.1:8010", router)
 		if err != nil {
 			panic(err)
 		}

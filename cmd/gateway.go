@@ -67,7 +67,17 @@ func setupRouter(target types.TargetConfig) {
 
 	proxy := makeProxy(target.Target)
 
-	// router.Get("/", proxy.ServeHTTP)
+	router.Get("/{asd}", func(w http.ResponseWriter, r *http.Request) {
+		asd := chi.URLParam(r, "asd")
+		//fmt.Println(chi.RouteContext(r.Context()).URLParams.Keys)
+		if asd != "asd" {
+			w.WriteHeader(http.StatusUnauthorized)
+			fmt.Fprintf(w, "Lol nope")
+			return
+		}
+
+		proxy.ServeHTTP(w, r)
+	})
 
 	router.NotFound(proxy.ServeHTTP) // Catch all router
 
