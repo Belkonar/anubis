@@ -1,8 +1,15 @@
 package types
 
 type TargetConfig struct {
-	Prefix string `json:"prefix"`
-	Target string `json:"target"`
+	Prefix    string                 `json:"prefix"`
+	Target    string                 `json:"target"`
+	Endpoints []TargetEndpointConfig `json:"endpoints"`
+}
+
+type TargetEndpointConfig struct {
+	Path   string      `json:"path"`
+	Method string      `json:"method"`
+	Fga    []FgaConfig `json:"fga"`
 }
 
 // FgaConfig is the configuration for an FGA relation query

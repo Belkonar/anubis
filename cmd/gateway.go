@@ -11,6 +11,7 @@ import (
 
 	"github.com/Belkonar/anubis/types"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/spf13/cobra"
 )
 
@@ -24,9 +25,8 @@ func globalHandler(w http.ResponseWriter, r *http.Request) {
 	uriParts = uriParts[1:]
 	newPath := "/" + strings.Join(uriParts, "/")
 
-	fmt.Println(prefix, newPath)
-
 	r.URL.Path = newPath // Reset path to remove prefix
+	// r.RequestURI = newPath // Probably not needed
 
 	router, ok := routers[prefix]
 
@@ -40,8 +40,6 @@ func globalHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func makeRouters() {
-	fmt.Println(cfgFile)
-
 	if cfgFile == "" {
 		panic("No config file specified")
 	}
@@ -64,20 +62,31 @@ func makeRouters() {
 
 func setupRouter(target types.TargetConfig) {
 	router := chi.NewRouter()
+	router.Use(middleware.Logger)
 
 	proxy := makeProxy(target.Target)
 
-	router.Get("/{asd}", func(w http.ResponseWriter, r *http.Request) {
-		asd := chi.URLParam(r, "asd")
-		//fmt.Println(chi.RouteContext(r.Context()).URLParams.Keys)
-		if asd != "asd" {
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Fprintf(w, "Lol nope")
-			return
+	for _, endpoint := range target.Endpoints {
+		var method func(pattern string, handlerFn http.HandlerFunc)
+
+		switch endpoint.Method {
+		case "GET":
+			method = router.Get
+		case "POST":
+			method = router.Post
+		case "PUT":
+			method = router.Put
+		case "DELETE":
+			method = router.Delete
+		default:
+			fmt.Println("Unknown method", endpoint.Method)
+			continue
 		}
 
-		proxy.ServeHTTP(w, r)
-	})
+		method(endpoint.Path, func(w http.ResponseWriter, r *http.Request) {
+			proxy.ServeHTTP(w, r)
+		})
+	}
 
 	router.NotFound(proxy.ServeHTTP) // Catch all router
 
@@ -102,14 +111,13 @@ func makeRewriter(target string) func(*httputil.ProxyRequest) {
 
 		r.SetXForwarded()
 		r.Out.Host = target.Host // Super annoying but entirely necessary
-		fmt.Println(r.Out.URL)
 	}
 }
 
 // gatewayCmd represents the gateway command
 var gatewayCmd = &cobra.Command{
 	Use:   "gateway",
-	Short: "A brief description of your command",
+	Short: "Start the gateway",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -130,5 +138,5 @@ to quickly create a Cobra application.`,
 func init() {
 	rootCmd.AddCommand(gatewayCmd)
 
-	gatewayCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "Config File")
+	gatewayCmd.Flags().StringVarP(&cfgFile, "config", "c", "config.json", "Config File")
 }
