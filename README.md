@@ -13,6 +13,9 @@ There will be two modes of operation.
 * Static, where you give it a config directly and it never changes until you redeploy
 * Dynamic, where it's managed by etcd and the api.
 
+For the current forseeable future, static mode will be the only mode while I work
+out the kinks.
+
 ## Database
 
 Fairly simply, the database is just etcd. That way we can easily update the
