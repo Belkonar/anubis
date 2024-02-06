@@ -79,7 +79,7 @@ func setupRouter(target types.TargetConfig) {
 		case "DELETE":
 			method = router.Delete
 		default:
-			fmt.Println("Unknown method", endpoint.Method)
+			fmt.Println("Unknown method", endpoint.Path, endpoint.Method)
 			continue
 		}
 
@@ -126,6 +126,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		makeRouters()
+
 		globalHandler := http.HandlerFunc(globalHandler)
 
 		err := http.ListenAndServe("127.0.0.1:8000", globalHandler)

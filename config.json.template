@@ -1,0 +1,19 @@
+[
+    {
+        "prefix": "example",
+        "target": "https://jsonplaceholder.typicode.com",
+        "endpoints": [
+            {
+                "path": "/todos/{id}",
+                "method": "GET",
+                "fga": [
+                    {
+                        "relation": "read",
+                        "objectType": "resource",
+                        "objectKey": "id"
+                    }
+                ]
+            }
+        ]
+    }
+]
