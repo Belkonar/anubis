@@ -1,15 +1,21 @@
 package types
 
 type TargetConfig struct {
-	Prefix    string                 `json:"prefix"`
-	Target    string                 `json:"target"`
-	Endpoints []TargetEndpointConfig `json:"endpoints"`
+	Prefix         string                 `json:"prefix"`
+	Target         string                 `json:"target"`
+	RefuseFallback bool                   `json:"refuseFallback"` // If true, it'll refuse to fall back to proxy
+	Endpoints      []TargetEndpointConfig `json:"endpoints"`
 }
 
 type TargetEndpointConfig struct {
 	Path   string      `json:"path"`
 	Method string      `json:"method"`
 	Fga    []FgaConfig `json:"fga"`
+}
+
+type AuthConfig struct {
+	Issuer   string `json:"issuer"`
+	Audience string `json:"audience"`
 }
 
 // FgaConfig is the configuration for an FGA relation query

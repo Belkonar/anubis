@@ -50,7 +50,7 @@ func makeRouters() {
 		panic(err)
 	}
 
-	config := []types.TargetConfig{}
+	var config []types.TargetConfig
 
 	json.Unmarshal(configData, &config)
 
@@ -62,7 +62,7 @@ func makeRouters() {
 
 func setupRouter(target types.TargetConfig) {
 	router := chi.NewRouter()
-	router.Use(middleware.Logger)
+	// router.Use(middleware.Logger)
 
 	proxy := makeProxy(target.Target)
 
@@ -88,7 +88,9 @@ func setupRouter(target types.TargetConfig) {
 		})
 	}
 
-	router.NotFound(proxy.ServeHTTP) // Catch all router
+	if target.RefuseFallback == false {
+		router.NotFound(proxy.ServeHTTP) // Catch all router
+	}
 
 	routers[target.Prefix] = router
 }
@@ -129,7 +131,12 @@ to quickly create a Cobra application.`,
 
 		globalHandler := http.HandlerFunc(globalHandler)
 
-		err := http.ListenAndServe("127.0.0.1:8000", globalHandler)
+		router := chi.NewRouter()
+		router.Use(middleware.Logger)
+
+		router.NotFound(globalHandler)
+
+		err := http.ListenAndServe("127.0.0.1:8000", router)
 		if err != nil {
 			panic(err)
 		}
